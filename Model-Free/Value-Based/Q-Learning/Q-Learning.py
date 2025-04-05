@@ -1,5 +1,6 @@
 import numpy as np 
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 
 class Grid:
     """ Class to create a grid world (5x5) environment for Q-learning """
@@ -154,19 +155,40 @@ for row in range(5):
 
 # Plotting heatmaps as subplots after printing the policy
 episodes_to_plot = [0, 500, 999]
-fig, axs = plt.subplots(1, 3, figsize=(15, 5))
 
+# Create a figure with 2 rows: first row for heatmaps, second row for the policy
+fig = plt.figure(figsize=(15, 10))
+gs = gridspec.GridSpec(2, 3, height_ratios=[1, 0.5])  # 2 rows, 3 columns; second row is shorter
+
+# First row: heatmaps for each specified episode
 for idx, ep in enumerate(episodes_to_plot):
-    # Ensure that we have a snapshot for the episode
+    ax = fig.add_subplot(gs[0, idx])
     if ep in snapshots:
-        im = axs[idx].imshow(snapshots[ep], cmap='hot', interpolation='nearest')
-        axs[idx].set_title(f'Episode {ep}')
-        axs[idx].set_xlabel('Column')
-        axs[idx].set_ylabel('Row')
-        axs[idx].set_xticks(np.arange(5))
-        axs[idx].set_yticks(np.arange(5))
-        fig.colorbar(im, ax=axs[idx], label='Q-value')
+        im = ax.imshow(snapshots[ep], cmap='hot', interpolation='nearest')
+        ax.set_title(f'Episode {ep}')
+        ax.set_xlabel('Column')
+        ax.set_ylabel('Row')
+        ax.set_xticks(np.arange(5))
+        ax.set_yticks(np.arange(5))
+        fig.colorbar(im, ax=ax, label='Q-value')
+
+# Second row: policy subplot spanning all 3 columns
+ax_policy = fig.add_subplot(gs[1, :])
+# Create a blank background for the policy grid
+ax_policy.imshow(np.zeros((5, 5)), cmap='gray', alpha=0.3)
+ax_policy.set_xticks(np.arange(5))
+ax_policy.set_yticks(np.arange(5))
+ax_policy.set_title("Learned Policy")
+ax_policy.set_xlabel("Column")
+ax_policy.set_ylabel("Row")
+
+# Annotate each cell with the corresponding policy letter
+for i in range(5):
+    for j in range(5):
+        # Decode the byte string to a normal string for printing
+        letter = policy[i, j].decode('utf-8')
+        ax_policy.text(j, i, letter, ha='center', va='center', fontsize=18)
 
 plt.tight_layout()
+plt.savefig('q_learning_heatmaps_and_policy.png')  # Save the figure to a file
 plt.show()
-plt.savefig('q_learning_heatmaps.png')  # Save the figure to a file
