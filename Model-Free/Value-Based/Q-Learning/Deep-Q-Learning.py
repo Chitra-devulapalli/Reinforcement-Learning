@@ -1,11 +1,13 @@
 import numpy as np 
 import matplotlib.pyplot as plt
-# import matplotlib.gridspec as gridspec
 from collections import deque
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import random
+
+# Set device to GPU if available
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class GridEnv:
     """
@@ -108,7 +110,7 @@ class DQN(nn.Module):
         return self.net(x)
 
 def train_dqn(
-    num_episodes=1000,
+    num_episodes=100,
     batch_size=32,
     buffer_capacity=10000,
     gamma=0.9,
@@ -125,11 +127,10 @@ def train_dqn(
     replay_buffer = ReplayBuffer(capacity=buffer_capacity)
 
     # Creating 2 networks, one for training and one for target
-    policy_net = DQN()
-    target_net = DQN()
+    policy_net = DQN().to(device)
+    target_net = DQN().to(device)
     target_net.load_state_dict(policy_net.state_dict())
     target_net.eval()  # we have to set the target network to eval mode
-    # policy_net.train()  # we have to set the policy network to train mode
 
     optimizer = optim.Adam(policy_net.parameters(), lr=learning_rate) # parameters are w, b of policy_net
 
@@ -149,14 +150,12 @@ def train_dqn(
             epsilon_value = epsilon(step_count)
             if np.random.rand() < epsilon_value:
                 action = np.random.randint(0, 4) # random action
-                # print("Exploring")
             else:
                 # use the policy network to get the action
-                state_tensor = torch.FloatTensor([state[0], state[1]]) # state 0 and 1 are row and column
+                state_tensor = torch.FloatTensor([state[0], state[1]]).to(device) # state 0 and 1 are row and column
                 with torch.no_grad():
                     q_values = policy_net(state_tensor)
                 action = torch.argmax(q_values).item()
-                # print("Exploiting")
             
             next_state, reward, done = env.step(action) # take the action
             replay_buffer.push(state, action, reward, next_state, done) # store the transition in the replay buffer
@@ -168,11 +167,11 @@ def train_dqn(
                 # sample minibatch from the replay buffer
                 states, actions, rewards, next_states, done_sample = replay_buffer.sample(batch_size)
                 # converting to tensors
-                states = torch.FloatTensor([[s[0], s[1]] for s in states])
-                actions = torch.LongTensor(actions).unsqueeze(-1) # shape = (batch_size,1)
-                rewards = torch.FloatTensor(rewards).unsqueeze(-1)
-                next_states = torch.FloatTensor([[ns[0], ns[1]] for ns in next_states])
-                done_sample = torch.LongTensor(done_sample).unsqueeze(-1)
+                states = torch.FloatTensor([[s[0], s[1]] for s in states]).to(device)
+                actions = torch.LongTensor(actions).unsqueeze(-1).to(device) # shape = (batch_size,1)
+                rewards = torch.FloatTensor(rewards).unsqueeze(-1).to(device)
+                next_states = torch.FloatTensor([[ns[0], ns[1]] for ns in next_states]).to(device)
+                done_sample = torch.Tensor(done_sample).unsqueeze(-1).to(device)
 
                 # current q-values (before training)
                 q_values = policy_net(states)
@@ -199,19 +198,20 @@ def train_dqn(
 
         all_rewards.append(episode_reward)
 
-        # if(episode + 1)%50==0:
-        print(f"Episode {episode+1}/{num_episodes}, Epsilon: {epsilon}, Episode Reward: {episode_reward}")
+        print(f"Episode {episode+1}/{num_episodes}, Epsilon: {epsilon_value}, Episode Reward: {episode_reward}")
 
     return policy_net, target_net, all_rewards
 
 if __name__ == "__main__":
-    policy_net, target_net, rewards = train_dqn(num_episodes=1000)
+    policy_net, target_net, rewards = train_dqn(num_episodes=100)
     # Plotting the rewards
     plt.plot(rewards)
     plt.xlabel('Episode')
     plt.ylabel('Reward')
     plt.title('DQN Training Rewards')
     plt.show()
+    
+
 
 
                 

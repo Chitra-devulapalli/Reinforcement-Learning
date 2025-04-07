@@ -1,15 +1,33 @@
 import numpy as np 
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
+from collections import deque
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import random
+import matplotlib.gridspec as gridspec  # Added for subplot layout
 
-class Grid:
-    """ Class to create a grid world (5x5) environment for Q-learning """
-    def __init__(self):
-        self.grid = np.zeros((5, 5))  # 5x5 grid world
-        self.grid[0][3] = 1         # Goal state
-        self.grid[1][2] = -1        # Obstacle state
+# Set device to GPU if available
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        self.start_state = (3, 0)   # Start state (row, column)
+class GridEnv:
+    """
+    A grid environment for DQN.
+    States are (row, col).
+    """
+    def __init__(self, size=10):
+        self.size = size
+        # 0 = empty, 1 = goal, -1 = obstacle
+        self.grid = np.zeros((size, size))
+
+        # set multiple goals and obstacles
+        self.grid[1][8] = 1    # Goal
+        self.grid[3][4] = -1   # Obstacle
+        self.grid[1][5] = -1   # Obstacle
+        self.grid[7][2] = -1   # Obstacle
+
+        # Start in bottom-left corner
+        self.start_state = (size - 1, 0)
         self.state = self.start_state
 
     def reset(self):
@@ -19,190 +37,270 @@ class Grid:
         """
         self.state = self.start_state
         return self.state
-    
+
     def is_terminal(self, state):
         """
         Check if the state is a terminal state
-        :param state: Current state (row, column)
-        :return: True if terminal, False otherwise
         """
         row, col = state
         return self.grid[row][col] == 1 or self.grid[row][col] == -1
-    
-    def get_next_action(self, state, action):
-        next_state = list(state)
-        if action == 0:  # Move Up
-            next_state[0] = max(0, state[0] - 1)
-        elif action == 1:  # Move Right
-            next_state[1] = min(4, state[1] + 1)  # Column shouldn't exceed 4
-        elif action == 2:  # Move Down
-            next_state[0] = min(4, state[0] + 1)  # Row shouldn't exceed 4
-        elif action == 3:  # Move Left
-            next_state[1] = max(0, state[1] - 1)  # Column shouldn't be less than 0  
 
-        return tuple(next_state)
-    
     def step(self, action):
         """
-        Take a step in the environment based on the action taken
-        :param action: Action to take (0: Up, 1: Right, 2: Down, 3: Left)
-        :return: (next_state, reward, done)
+        action: 0=Up, 1=Right, 2=Down, 3=Left
+        Returns: next_state, reward, done
         """
-        next_state = self.get_next_action(self.state, action)
+        row, col = self.state
+        if action == 0:  # Up
+            row = max(row - 1, 0)
+        elif action == 1:  # Right
+            col = min(col + 1, self.size - 1)
+        elif action == 2:  # Down
+            row = min(row + 1, self.size - 1)
+        elif action == 3:  # Left
+            col = max(col - 1, 0)
 
-        # Get the reward for the next state
-        if self.grid[next_state[0]][next_state[1]] == 1:
+        next_state = (row, col)
+
+        # Rewards
+        if self.grid[row][col] == 1:
             reward = 10
-        elif self.grid[next_state[0]][next_state[1]] == -1:
+        elif self.grid[row][col] == -1:
             reward = -10
         else:
             reward = 0
-        
-        done = self.is_terminal(next_state)  # Check if the next state is terminal
+
+        done = self.is_terminal(next_state)
         self.state = next_state
-
         return next_state, reward, done
-    
-class QLearning:
-    def __init__(self, learning_rate=0.01, discount_factor=0.9, epsilon=0.1):
-        """
-        Initialize Q-learning parameters
-        :param learning_rate: Learning rate (alpha)
-        :param discount_factor: Discount factor (gamma)
-        :param epsilon: Exploration probability
-        """
-        self.learning_rate = learning_rate
-        self.discount_factor = discount_factor
-        self.exploration_prob = epsilon
 
-        # Initialize Q-table with zeros
-        self.q_table = np.zeros((5, 5, 4))
+class ReplayBuffer:
+    """
+    We need a replay buffer to store transitions (s,a,r,s',done)
+    """
+    def __init__(self, capacity=10000):
+        self.buffer = deque(maxlen=capacity)
 
-    def choose_action(self, state):
-        """
-        Choose an action based on epsilon-greedy policy
-        :param state: Current state (row, column)
-        :return: Action to take (0: Up, 1: Right, 2: Down, 3: Left)
-        """
-        if np.random.rand() < self.exploration_prob:
-            # Explore: choose a random action
-            return np.random.choice(4)
-        else:
-            # Exploit: choose the action with the highest Q-value
-            row, col = state
-            return np.argmax(self.q_table[row][col])
-        
-    def update_q(self, state, action, reward, next_state):
-        max_future_q = np.max(self.q_table[next_state[0]][next_state[1]])
-        current_q = self.q_table[state[0]][state[1]][action]
-        # Update the Q-value using the Q-learning formula
-        self.q_table[state[0]][state[1]][action] = current_q + self.learning_rate * (
-            reward + self.discount_factor * max_future_q - current_q
+    def push(self, state, action, reward, next_state, done):
+        self.buffer.append((state, action, reward, next_state, done))
+
+    def sample(self, batch_size):
+        batch = random.sample(self.buffer, batch_size)
+        states, actions, rewards, next_states, done_sample = zip(*batch)
+        return states, actions, rewards, next_states, done_sample
+
+    def __len__(self):
+        return len(self.buffer)
+
+
+class DQN(nn.Module):
+    """
+    A 2 layer MLP that takes vector of states and actions [s,a] and returns the Q values Q(s,a)
+    """
+    def __init__(self, input_dim = 2, hidden_dim = 64, output_dim = 4):
+        super(DQN, self).__init__()
+        self.net = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, output_dim)
         )
 
-# Training the agent 
-env = Grid()
-agent = QLearning()
+    def forward(self, x):
+        return self.net(x)
 
-num_episodes = 1000  # Number of episodes to train the agent 
-# Dictionary to store snapshots of Q-values for action 0 at specific episodes
-snapshots = {}
-accumulated_rewards = []  # List to store accumulated rewards for each episode
+def train_dqn(
+    num_episodes=100,
+    batch_size=32,
+    buffer_capacity=10000,
+    gamma=0.9,
+    learning_rate=0.001,
+    epsilon_start=1.0,
+    epsilon_end=0.1,
+    epsilon_decay=500,
+    target_update_freq=10
+):
+    """
+    Train the DQN agent on the grid environment
+    """
+    env = GridEnv()
+    replay_buffer = ReplayBuffer(capacity=buffer_capacity)
 
-for episode in range(num_episodes):
-    state = env.reset()  # Reset the environment to start state
-    done = False
-    episode_reward = 0  # Initialize episode reward
+    # Creating 2 networks, one for training and one for target
+    policy_net = DQN().to(device)
+    target_net = DQN().to(device)
+    target_net.load_state_dict(policy_net.state_dict())
+    target_net.eval()  # we have to set the target network to eval mode
 
-    while not done:
-        action = agent.choose_action(state)  # Choose an action based on epsilon-greedy policy
-        next_state, reward, done = env.step(action)  # Take a step in the environment
+    optimizer = optim.Adam(policy_net.parameters(), lr=learning_rate) # parameters are w, b of policy_net
 
-        # Update the Q-value based on the action taken
-        agent.update_q(state, action, reward, next_state)
+    def epsilon(step):
+        return max(epsilon_end, epsilon_start*(0.99**(step/epsilon_decay))) # exponential decay
+    
+    all_rewards = []
+    step_count = 0
 
-        state = next_state  # Move to the next state
-        episode_reward += reward  # Accumulate the reward for the episode
+    # For capturing snapshots of Q-values at episodes 0, 50, and 99
+    episodes_to_snapshot = [0, 50, 99]
+    snapshots = {}
 
-    # After each episode, if it's one of the desired episodes, store a snapshot of Q-values for action 0
-    if episode in [0, 500, 999]:
-        snapshots[episode] = agent.q_table[:, :, 0].copy()
+    for episode in range(num_episodes):
+        state = env.reset() # putting the agent in the start state
+        done = False
+        episode_reward = 0
 
-    accumulated_rewards.append(episode_reward)  # Store the accumulated reward for the episode
+        while not done:
+            step_count += 1
+            epsilon_value = epsilon(step_count)
+            if np.random.rand() < epsilon_value:
+                action = np.random.randint(0, 4) # random action
+            else:
+                # use the policy network to get the action
+                state_tensor = torch.FloatTensor([state[0], state[1]]).to(device) # state 0 and 1 are row and column
+                with torch.no_grad():
+                    q_values = policy_net(state_tensor)
+                action = torch.argmax(q_values).item()
+            
+            next_state, reward, done = env.step(action) # take the action
+            replay_buffer.push(state, action, reward, next_state, done) # store the transition in the replay buffer
+            episode_reward += reward
+            state = next_state
 
-# Extracting the learned policy from the Q-table
-policy = np.chararray((5, 5), itemsize=1)  # Initialize a policy array
-for row in range(5):
-    for col in range(5):
-        if env.grid[row][col] == 1:
-            policy[row][col] = 'G'  # Goal state
-        elif env.grid[row][col] == -1:
-            policy[row][col] = 'X'  # Obstacle state
-        elif row == 3 and col == 0:
-            policy[row][col] = 'S'  # Start state
-        else:
-            best_action = np.argmax(agent.q_table[row][col])
-            if best_action == 0:
-                policy[row][col] = 'U'  # Up
-            elif best_action == 1:
-                policy[row][col] = 'R'  # Right
-            elif best_action == 2:
-                policy[row][col] = 'D'  # Down
-            elif best_action == 3:
-                policy[row][col] = 'L'  # Left
+            # Training step
+            if len(replay_buffer) >= batch_size:
+                # sample minibatch from the replay buffer
+                states, actions, rewards, next_states, done_sample = replay_buffer.sample(batch_size)
+                # converting to tensors
+                states = torch.FloatTensor([[s[0], s[1]] for s in states]).to(device)
+                actions = torch.LongTensor(actions).unsqueeze(-1).to(device) # shape = (batch_size,1)
+                rewards = torch.FloatTensor(rewards).unsqueeze(-1).to(device)
+                next_states = torch.FloatTensor([[ns[0], ns[1]] for ns in next_states]).to(device)
+                done_sample = torch.Tensor(done_sample).unsqueeze(-1).to(device)
 
-# Print the learned policy
-print("Learned Policy:")
-for row in range(5):
-    for col in range(5):
-        # Decode byte string to normal string for printing
-        print(policy[row][col].decode('utf-8'), end=' ' if col < 4 else '\n')
+                # current q-values (before training)
+                q_values = policy_net(states)
+                # Gather the Q-value corresponding to each action in the batch
+                q_values = q_values.gather(1, actions) # gather is a pytorch method
 
-# Plotting heatmaps as subplots after printing the policy
-episodes_to_plot = [0, 500, 999]
+                # getting next q-values from target net
+                with torch.no_grad():
+                    max_next_q_values = target_net(next_states).max(dim=1, keepdim = True)[0] # 0 coz max returns values and indices, we just want the values
 
-# Create a figure with 2 rows: first row for heatmaps, second row for the policy
-fig = plt.figure(figsize=(15, 10))
-gs = gridspec.GridSpec(2, 3, height_ratios=[1, 0.5])  # 2 rows, 3 columns; second row is shorter
+                # calculating target to be used in loss
+                target = rewards + gamma * max_next_q_values * (1 - done_sample)
 
-# First row: heatmaps for each specified episode
-for idx, ep in enumerate(episodes_to_plot):
-    ax = fig.add_subplot(gs[0, idx])
-    if ep in snapshots:
-        im = ax.imshow(snapshots[ep], cmap='hot', interpolation='nearest')
-        ax.set_title(f'Episode {ep}')
-        ax.set_xlabel('Column')
-        ax.set_ylabel('Row')
-        ax.set_xticks(np.arange(5))
-        ax.set_yticks(np.arange(5))
-        fig.colorbar(im, ax=ax, label='Q-value')
+                # loss using mse
+                loss = nn.MSELoss()(q_values, target)
 
-# Second row: policy subplot spanning all 3 columns
-ax_policy = fig.add_subplot(gs[1, :])
-# Create a blank background for the policy grid
-ax_policy.imshow(np.zeros((5, 5)), cmap='gray', alpha=0.3)
-ax_policy.set_xticks(np.arange(5))
-ax_policy.set_yticks(np.arange(5))
-ax_policy.set_title("Learned Policy")
-ax_policy.set_xlabel("Column")
-ax_policy.set_ylabel("Row")
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+            
+            # update target net after training, but not always (depending on target_update_freq)
+            if step_count % target_update_freq == 0:
+                target_net.load_state_dict(policy_net.state_dict())
 
-# Annotate each cell with the corresponding policy letter
-for i in range(5):
-    for j in range(5):
-        # Decode the byte string to a normal string for printing
-        letter = policy[i, j].decode('utf-8')
-        ax_policy.text(j, i, letter, ha='center', va='center', fontsize=18)
+        all_rewards.append(episode_reward)
 
-plt.tight_layout()
-plt.savefig('q_learning_heatmaps_and_policy.png')  # Save the figure to a file
-plt.show()
+        # Capture snapshot of Q-values (for action 0) over the entire grid at specific episodes
+        if episode in episodes_to_snapshot:
+            snapshot = np.zeros((env.size, env.size))
+            for i in range(env.size):
+                for j in range(env.size):
+                    state_tensor = torch.FloatTensor([i, j]).to(device)
+                    with torch.no_grad():
+                        q_vals = policy_net(state_tensor)
+                    snapshot[i, j] = q_vals[0].item()  # storing Q-value for action 0
+            snapshots[episode] = snapshot
 
-# Plotting the accumulated rewards over episodes
-plt.figure(figsize=(10, 5))
-plt.plot(accumulated_rewards)
-plt.title('Accumulated Rewards Over Episodes')
-plt.xlabel('Episode')
-plt.ylabel('Accumulated Reward')
-plt.grid()
-plt.show()
+        print(f"Episode {episode+1}/{num_episodes}, Epsilon: {epsilon_value}, Episode Reward: {episode_reward}")
+
+    return policy_net, target_net, all_rewards, snapshots
+
+if __name__ == "__main__":
+    policy_net, target_net, rewards, snapshots = train_dqn(num_episodes=100)
+    # Plotting the rewards
+    plt.figure(figsize=(10, 5))
+    plt.plot(rewards)
+    plt.xlabel('Episode')
+    plt.ylabel('Reward')
+    plt.title('DQN Training Rewards')
+    plt.show()
+
+    # -------------------------------
+    # Plotting heatmaps as subplots after printing the policy
+    # -------------------------------
+    # We will plot snapshots (heatmaps) at episodes 0, 50, and 99.
+    episodes_to_plot = [0, 50, 99]
+
+    # Create a figure with 2 rows: first row for heatmaps, second row for the policy
+    fig = plt.figure(figsize=(15, 10))
+    gs = gridspec.GridSpec(2, 3, height_ratios=[1, 0.5])  # 2 rows, 3 columns; second row is shorter
+
+    # First row: heatmaps for each specified episode
+    for idx, ep in enumerate(episodes_to_plot):
+        ax = fig.add_subplot(gs[0, idx])
+        if ep in snapshots:
+            im = ax.imshow(snapshots[ep], cmap='hot', interpolation='nearest')
+            ax.set_title(f'Episode {ep}')
+            ax.set_xlabel('Column')
+            ax.set_ylabel('Row')
+            ax.set_xticks(np.arange(0, 11, 2))
+            ax.set_yticks(np.arange(0, 11, 2))
+            fig.colorbar(im, ax=ax, label='Q-value')
+
+    # Second row: policy subplot spanning all 3 columns
+    # Now that the grid is 10x10, we plot the learned policy directly.
+    env = GridEnv()  # Create an environment instance to access grid information
+    policy_vis = np.chararray((10, 10), itemsize=1)
+    for i in range(10):
+        for j in range(10):
+            if env.grid[i][j] == 1:
+                policy_vis[i, j] = 'G'  # Goal state
+            elif env.grid[i][j] == -1:
+                policy_vis[i, j] = 'X'  # Obstacle state
+            elif (i, j) == env.start_state:
+                policy_vis[i, j] = 'S'  # Start state
+            else:
+                state_tensor = torch.FloatTensor([i, j]).to(device)
+                with torch.no_grad():
+                    q_vals = policy_net(state_tensor)
+                best_action = torch.argmax(q_vals).item()
+                if best_action == 0:
+                    policy_vis[i, j] = 'U'  # Up
+                elif best_action == 1:
+                    policy_vis[i, j] = 'R'  # Right
+                elif best_action == 2:
+                    policy_vis[i, j] = 'D'  # Down
+                elif best_action == 3:
+                    policy_vis[i, j] = 'L'  # Left
+
+    ax_policy = fig.add_subplot(gs[1, :])
+    # Create a blank background for the policy grid (10x10)
+    ax_policy.imshow(np.zeros((10, 10)), cmap='gray', alpha=0.3)
+    ax_policy.set_xticks(np.arange(10))
+    ax_policy.set_yticks(np.arange(10))
+    ax_policy.set_title("Learned Policy (10x10)")
+    ax_policy.set_xlabel("Column")
+    ax_policy.set_ylabel("Row")
+
+    # Annotate each cell with the corresponding policy letter
+    for i in range(10):
+        for j in range(10):
+            letter = policy_vis[i, j].decode('utf-8')
+            ax_policy.text(j, i, letter, ha='center', va='center', fontsize=18)
+
+    plt.tight_layout()
+    plt.savefig('dqn_heatmaps_and_policy.png')  # Save the figure to a file
+    plt.show()
+
+    # Plotting the accumulated rewards over episodes
+    plt.figure(figsize=(10, 5))
+    plt.plot(rewards)
+    plt.title('Accumulated Rewards Over Episodes')
+    plt.xlabel('Episode')
+    plt.ylabel('Accumulated Reward')
+    plt.grid()
+    plt.show()
+
