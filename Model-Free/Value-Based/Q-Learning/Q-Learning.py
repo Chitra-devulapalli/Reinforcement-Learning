@@ -107,10 +107,12 @@ agent = QLearning()
 num_episodes = 1000  # Number of episodes to train the agent 
 # Dictionary to store snapshots of Q-values for action 0 at specific episodes
 snapshots = {}
+accumulated_rewards = []  # List to store accumulated rewards for each episode
 
 for episode in range(num_episodes):
     state = env.reset()  # Reset the environment to start state
     done = False
+    episode_reward = 0  # Initialize episode reward
 
     while not done:
         action = agent.choose_action(state)  # Choose an action based on epsilon-greedy policy
@@ -120,10 +122,13 @@ for episode in range(num_episodes):
         agent.update_q(state, action, reward, next_state)
 
         state = next_state  # Move to the next state
+        episode_reward += reward  # Accumulate the reward for the episode
 
     # After each episode, if it's one of the desired episodes, store a snapshot of Q-values for action 0
     if episode in [0, 500, 999]:
         snapshots[episode] = agent.q_table[:, :, 0].copy()
+
+    accumulated_rewards.append(episode_reward)  # Store the accumulated reward for the episode
 
 # Extracting the learned policy from the Q-table
 policy = np.chararray((5, 5), itemsize=1)  # Initialize a policy array
@@ -191,4 +196,13 @@ for i in range(5):
 
 plt.tight_layout()
 plt.savefig('q_learning_heatmaps_and_policy.png')  # Save the figure to a file
+plt.show()
+
+# Plotting the accumulated rewards over episodes
+plt.figure(figsize=(10, 5))
+plt.plot(accumulated_rewards)
+plt.title('Accumulated Rewards Over Episodes')
+plt.xlabel('Episode')
+plt.ylabel('Accumulated Reward')
+plt.grid()
 plt.show()
