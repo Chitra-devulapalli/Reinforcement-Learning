@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import random
+import matplotlib.gridspec as gridspec  # Added for subplot layout
 
 # Set device to GPU if available
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -14,16 +15,16 @@ class GridEnv:
     A grid environment for DQN.
     States are (row, col).
     """
-    def __init__(self, size=100):
+    def __init__(self, size=10):
         self.size = size
         # 0 = empty, 1 = goal, -1 = obstacle
         self.grid = np.zeros((size, size))
 
         # set multiple goals and obstacles
-        self.grid[1][80] = 1    # Goal
-        self.grid[34][43] = -1   # Obstacle
-        self.grid[15][50] = -1   # Obstacle
-        self.grid[70][25] = -1   # Obstacle
+        self.grid[1][8] = 1    # Goal
+        self.grid[3][4] = -1   # Obstacle
+        self.grid[1][5] = -1   # Obstacle
+        self.grid[7][2] = -1   # Obstacle
 
         # Start in bottom-left corner
         self.start_state = (size - 1, 0)
@@ -140,6 +141,10 @@ def train_dqn(
     all_rewards = []
     step_count = 0
 
+    # For capturing snapshots of Q-values at episodes 0, 50, and 99
+    episodes_to_snapshot = [0, 50, 99]
+    snapshots = {}
+
     for episode in range(num_episodes):
         state = env.reset() # putting the agent in the start state
         done = False
@@ -193,26 +198,110 @@ def train_dqn(
                 optimizer.step()
             
             # update target net after training, but not always (depending on target_update_freq)
-            if step_count%target_update_freq == 0:
+            if step_count % target_update_freq == 0:
                 target_net.load_state_dict(policy_net.state_dict())
 
         all_rewards.append(episode_reward)
 
+        # Capture snapshot of Q-values (for action 0) over the entire grid at specific episodes
+        if episode in episodes_to_snapshot:
+            snapshot = np.zeros((env.size, env.size))
+            for i in range(env.size):
+                for j in range(env.size):
+                    state_tensor = torch.FloatTensor([i, j]).to(device)
+                    with torch.no_grad():
+                        q_vals = policy_net(state_tensor)
+                    snapshot[i, j] = q_vals[0].item()  # storing Q-value for action 0
+            snapshots[episode] = snapshot
+
         print(f"Episode {episode+1}/{num_episodes}, Epsilon: {epsilon_value}, Episode Reward: {episode_reward}")
 
-    return policy_net, target_net, all_rewards
+    return policy_net, target_net, all_rewards, snapshots
 
 if __name__ == "__main__":
-    policy_net, target_net, rewards = train_dqn(num_episodes=100)
+    print("running for 10*10 grid with DQN")
+    policy_net, target_net, rewards, snapshots = train_dqn(num_episodes=1000)
     # Plotting the rewards
+    plt.figure(figsize=(10, 5))
     plt.plot(rewards)
     plt.xlabel('Episode')
     plt.ylabel('Reward')
     plt.title('DQN Training Rewards')
     plt.show()
-    
 
+    # -------------------------------
+    # Plotting heatmaps as subplots after printing the policy
+    # -------------------------------
+    # We will plot snapshots (heatmaps) at episodes 0, 50, and 99.
+    episodes_to_plot = [0, 50, 99]
 
+    # Create a figure with 2 rows: first row for heatmaps, second row for the policy
+    fig = plt.figure(figsize=(15, 10))
+    gs = gridspec.GridSpec(2, 3, height_ratios=[1, 0.5])  # 2 rows, 3 columns; second row is shorter
 
-                
-        
+    # First row: heatmaps for each specified episode
+    for idx, ep in enumerate(episodes_to_plot):
+        ax = fig.add_subplot(gs[0, idx])
+        if ep in snapshots:
+            im = ax.imshow(snapshots[ep], cmap='hot', interpolation='nearest')
+            ax.set_title(f'Episode {ep}')
+            ax.set_xlabel('Column')
+            ax.set_ylabel('Row')
+            ax.set_xticks(np.arange(0, 11, 2))
+            ax.set_yticks(np.arange(0, 11, 2))
+            fig.colorbar(im, ax=ax, label='Q-value')
+
+    # Second row: policy subplot spanning all 3 columns
+    # Now that the grid is 10x10, we plot the learned policy directly.
+    env = GridEnv()  # Create an environment instance to access grid information
+    policy_vis = np.chararray((10, 10), itemsize=1)
+    for i in range(10):
+        for j in range(10):
+            if env.grid[i][j] == 1:
+                policy_vis[i, j] = 'G'  # Goal state
+            elif env.grid[i][j] == -1:
+                policy_vis[i, j] = 'X'  # Obstacle state
+            elif (i, j) == env.start_state:
+                policy_vis[i, j] = 'S'  # Start state
+            else:
+                state_tensor = torch.FloatTensor([i, j]).to(device)
+                with torch.no_grad():
+                    q_vals = policy_net(state_tensor)
+                best_action = torch.argmax(q_vals).item()
+                if best_action == 0:
+                    policy_vis[i, j] = 'U'  # Up
+                elif best_action == 1:
+                    policy_vis[i, j] = 'R'  # Right
+                elif best_action == 2:
+                    policy_vis[i, j] = 'D'  # Down
+                elif best_action == 3:
+                    policy_vis[i, j] = 'L'  # Left
+
+    ax_policy = fig.add_subplot(gs[1, :])
+    # Create a blank background for the policy grid (10x10)
+    ax_policy.imshow(np.zeros((10, 10)), cmap='gray', alpha=0.3)
+    ax_policy.set_xticks(np.arange(10))
+    ax_policy.set_yticks(np.arange(10))
+    ax_policy.set_title("Learned Policy (10x10)")
+    ax_policy.set_xlabel("Column")
+    ax_policy.set_ylabel("Row")
+
+    # Annotate each cell with the corresponding policy letter
+    for i in range(10):
+        for j in range(10):
+            letter = policy_vis[i, j].decode('utf-8')
+            ax_policy.text(j, i, letter, ha='center', va='center', fontsize=18)
+
+    plt.tight_layout()
+    plt.savefig('dqn_heatmaps_and_policy.png')  # Save the figure to a file
+    plt.show()
+
+    # Plotting the accumulated rewards over episodes
+    plt.figure(figsize=(10, 5))
+    plt.plot(rewards)
+    plt.title('Accumulated Rewards Over Episodes')
+    plt.xlabel('Episode')
+    plt.ylabel('Accumulated Reward')
+    plt.grid()
+    plt.show()
+
