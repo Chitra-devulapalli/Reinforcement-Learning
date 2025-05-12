@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # Train A2C on Isaac-Lab Cartpole-Direct and save artefacts in a fixed dir.
+from tqdm import tqdm
+import rich
 
 # ── 0. Isaac Sim ─────────────────────────────────────────────────────────────
 from isaaclab.app import AppLauncher
@@ -50,6 +52,8 @@ def main(env_cfg, agent_cfg):
     # -------- Agent ----------------------------------------------------------------
     model = A2C("MlpPolicy",
                 train_env,
+                device = "cpu",
+                learning_rate = 0.001,
                 verbose=1,
                 tensorboard_log=str(LOG_DIR),
                 policy_kwargs={"net_arch": [64, 64]})
@@ -70,7 +74,7 @@ def main(env_cfg, agent_cfg):
                                  verbose=2)
 
     # -------- Train ----------------------------------------------------------------
-    model.learn(total_timesteps=500000, callback=[eval_cb, ckpt_cb])
+    model.learn(total_timesteps=5000000, callback=[eval_cb, ckpt_cb], progress_bar = True)
 
     # always save final weights
     model.save(MODEL_DIR / "best_model")
