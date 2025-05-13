@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# Train A2C on Isaac-Lab Cartpole-Direct and save artefacts in a fixed dir.
 from tqdm import tqdm
 import rich
 
@@ -26,7 +25,7 @@ class PatchedSb3VecEnv(Sb3VecEnvWrapper):
         return [False] * self.num_envs
 
 # ── 3. Fixed output paths ────────────────────────────────────────────────────
-ROOT = Path("/home/chitra/Documents/Reinforcement-Learning/Model-Free/Hybrid/A2C_sb/arm_isaaclab")
+ROOT = Path("/home/chitra/Documents/Reinforcement-Learning/Model-Free/Hybrid/PPO_sb/arm_isaaclab")
 MODEL_DIR = ROOT / ""
 LOG_DIR   = ROOT / "logs"
 MODEL_DIR.mkdir(parents=True, exist_ok=True)
@@ -54,31 +53,49 @@ def main(env_cfg, agent_cfg):
     eval_env =train_env
 
     # -------- Agent ----------------------------------------------------------------
-    model = A2C("MlpPolicy",
-                train_env,
-                device = "cpu",
-                learning_rate = 0.001,
-                verbose=1,
-                tensorboard_log=str(LOG_DIR),
-                policy_kwargs={"net_arch": [64, 64]})
+    # -------- Agent ----------------------------------------------------------------
+    env_cfg.scene.num_envs = 128   # 128 envs
+    env_cfg.observations.policy.enable_corruption = False
+
+    model = PPO(
+        policy="MlpPolicy",
+        env=train_env,
+        device="cuda",            # or "cpu"
+        learning_rate=3e-4,       # PPO usually likes a smaller LR than A2C
+        n_steps=512,             # rollout length before an update
+        batch_size=2048,            # minibatch size for SGD
+        n_epochs=10,              # gradient passes over each batch
+        gamma=0.99,
+        gae_lambda=0.95,
+        clip_range=0.2,           # policy clip
+        verbose=1,
+        tensorboard_log=str(LOG_DIR),
+        policy_kwargs={"net_arch": [64, 64]},
+    )
+
 
     model.set_logger(configure(str(LOG_DIR), ["stdout", "tensorboard"]))
 
     # -------- Callbacks ------------------------------------------------------------
-    eval_cb = EvalCallback(eval_env,
-                           best_model_save_path=str(MODEL_DIR),
-                           log_path=str(LOG_DIR),
-                           eval_freq=1000,
-                           deterministic=True,
-                           render=False)
+    eval_cb = EvalCallback(
+        eval_env,
+        best_model_save_path=str(MODEL_DIR),
+        log_path=str(LOG_DIR),
+        eval_freq=20000,          # was 1000
+        deterministic=True,
+        render=False,
+    )
 
-    ckpt_cb = CheckpointCallback(save_freq=5000,
-                                 save_path=str(MODEL_DIR),
-                                 name_prefix="checkpoint",
-                                 verbose=2)
+    ckpt_cb = CheckpointCallback(
+        save_freq=100000,         # was 5000
+        save_path=str(MODEL_DIR),
+        name_prefix="checkpoint",
+        verbose=2,
+    )
+
 
     # -------- Train ----------------------------------------------------------------
-    model.learn(total_timesteps=5000000, callback=[eval_cb, ckpt_cb], progress_bar = True)
+    model.learn(total_timesteps=128 * 512 * 80, callback=[eval_cb, ckpt_cb], progress_bar = True)
 
     # always save final weights
     model.save(MODEL_DIR / "best_model")
