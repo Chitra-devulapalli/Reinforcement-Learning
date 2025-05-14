@@ -61,7 +61,7 @@ for ep in range(EPISODES):
 
         ret_ep += rew
         if HEADLESS:
-            time.sleep(0.01)                  # slow down for better visualisation
+            time.sleep(0.01) # slow down for better visualisation
             simulation_app.update()
 
     print(f"Episode {ep+1}:  mean return = {ret_ep.mean():.2f}")
