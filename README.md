@@ -48,6 +48,35 @@ Results:
 
 ### 2. DQN
 
+### 3. Advantage Actor Critic (A2C)
+
+#### Algorithm: 
+aaaaaaaaaaaaaaaaaaaaaaaa
+
+#### Usage: 
+```
+cd Hybrid/A2C # for pytorch version from scratch
+python train.py
+python play.py
+
+cd Hybrid/A2C_sb # for stable baselines version
+python train.py
+python play.py
+```
+
+#### Results:
+Pytorch implementation:
+<p align="center">
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c_1cartpole.gif" width="45%" />
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c1_rewards.png" width="45%" />
+</p>
+
+Stable Baselines implementation:
+<p align="center">
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c_2cartpole.gif" width="45%" />
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c2_rewards.png" width="45%" />
+</p>
+
 ## Examples using Isaac Lab
 
 We explored a range of robotics environments within Isaac Sim/Isaac Lab, using Stable Baselines to implement selected algorithms for tasks like balancing an inverted pendulum on a cartpole and guiding the end effector of a Franka robot to reach a cube.
