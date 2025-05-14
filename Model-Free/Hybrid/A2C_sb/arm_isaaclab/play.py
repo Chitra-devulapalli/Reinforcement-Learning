@@ -36,7 +36,7 @@ from isaaclab.envs import DirectMARLEnv, multi_agent_to_single_agent
 
 # ► NEW: task‑specific config class
 from isaaclab_tasks.manager_based.manipulation.lift.config.franka.joint_pos_env_cfg import (
-    FrankaCubeLiftEnvCfg,
+    FrankaCubeLiftEnvCfg_PLAY,
 )
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -55,8 +55,8 @@ MODEL_PATH = ROOT_PATH / CHECKPOINT
 # ───────────────────────────────────────────────────────────────────────────────
 # 4.  Build the environment
 # ───────────────────────────────────────────────────────────────────────────────
-env_cfg               = FrankaCubeLiftEnvCfg()   # ← NEW
-env_cfg.scene.num_envs = 2                      # optional: keep it light
+env_cfg               = FrankaCubeLiftEnvCfg_PLAY()   # ← NEW
+env_cfg.scene.num_envs = 1                      # optional: keep it light
 # env_cfg.observations.policy.enable_corruption = False
 # env_cfg.scene.object.init_state.pos = (0.5, 0.00, 0.005)
 # env_cfg.scene.object.init_state.rot = (1.0, 0.0, 0.0, 0.0)
