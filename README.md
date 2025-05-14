@@ -1,7 +1,7 @@
 # Reinforcement Learning Tutorial for Robotics
 
 <p align="center">
-  This repository provides an introduction to popular reinforcement learning algorithms, implemented using PyTorch or Stable Baselines. These algorithms are tested across various simulation environments, helping you build an intuition for how reinforcement learning methods are applied in robotics.
+  This repository is an introduction to popular reinforcement learning algorithms, implemented using PyTorch or Stable Baselines3. These algorithms are tested across various simulation environments to help build an intuition in how RL methods are applied in robotics.
 </p>
 
 ![alt text](https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/titleimg.png)
