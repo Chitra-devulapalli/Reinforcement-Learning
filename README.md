@@ -66,7 +66,7 @@ python play.py
 
 #### Results:
 PyTorch Implementation:
-| ![GIF](https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c_res.gif) | ![Plot](https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c1_rewards.png) |
+| ![GIF](https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c_1cartpole.gif) | ![Plot](https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c1_rewards.png) |
 |:--:|:--:|
 | A2C with CartPole (PyTorch) | Episode Rewards Plot |
 
