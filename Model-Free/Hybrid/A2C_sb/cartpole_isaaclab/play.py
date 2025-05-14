@@ -54,6 +54,7 @@ MODEL_PATH  = ROOT_PATH / CHECKPOINT
 # 4.  Build the environment
 # ──────────────────────────────────────────────────────────────────────────────
 env_cfg = CartpoleEnvCfg()                     # default config
+env_cfg.scene.num_envs = 1  
 env = gym.make(TASK_NAME, cfg=env_cfg, render_mode=None)
 
 # Convert multi-agent → single-agent for SB3

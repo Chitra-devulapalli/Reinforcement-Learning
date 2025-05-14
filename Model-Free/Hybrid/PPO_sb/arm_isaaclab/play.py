@@ -32,7 +32,7 @@ simulation_app = app_launcher.app
 from isaaclab_rl.sb3 import Sb3VecEnvWrapper
 from isaaclab.envs import DirectMARLEnv, multi_agent_to_single_agent
 from isaaclab_tasks.manager_based.manipulation.lift.config.franka.joint_pos_env_cfg import (
-    FrankaCubeLiftEnvCfg,
+    FrankaCubeLiftEnvCfg_PLAY,
 )
 
 class PatchedSb3VecEnv(Sb3VecEnvWrapper):
@@ -45,8 +45,8 @@ class PatchedSb3VecEnv(Sb3VecEnvWrapper):
 ROOT_PATH  = Path(ROOT)
 MODEL_PATH = ROOT_PATH / CHECKPOINT
 
-env_cfg               = FrankaCubeLiftEnvCfg()
-env_cfg.scene.num_envs = 2                # small grid for visual demo
+env_cfg               = FrankaCubeLiftEnvCfg_PLAY()
+env_cfg.scene.num_envs = 1                # small grid for visual demo
 # env_cfg.randomization = None
 # env_cfg.observations.policy.enable_corruption = False
 # env_cfg.scene.object.init_state.pos = (0.5, 0.00, 0.005)

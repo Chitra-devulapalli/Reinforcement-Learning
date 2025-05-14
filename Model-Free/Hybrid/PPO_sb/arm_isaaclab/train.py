@@ -4,7 +4,7 @@ import rich
 
 # ── 0. Isaac Sim ─────────────────────────────────────────────────────────────
 from isaaclab.app import AppLauncher
-app_launcher   = AppLauncher(headless=True)      # flip to True once happy
+app_launcher   = AppLauncher(headless=False)      # flip to True once happy
 simulation_app = app_launcher.app                 # keep alive
 
 # ── 1. Std / third-party imports ─────────────────────────────────────────────
@@ -36,7 +36,7 @@ TASK_NAME = "Isaac-Lift-Cube-Franka-v0"
 # ── 4. Hydra entry point ─────────────────────────────────────────────────────
 @hydra_task_config(TASK_NAME, "sb3_cfg_entry_point")
 def main(env_cfg, agent_cfg):
-    env_cfg.headless = True                        # GUI on
+    env_cfg.headless = False                        # GUI on
     # env_cfg.randomization = None
     # env_cfg.observations.policy.enable_corruption = False
     # env_cfg.scene.object.init_state.pos = (0.5, 0.00, 0.005)
@@ -54,7 +54,7 @@ def main(env_cfg, agent_cfg):
 
     # -------- Agent ----------------------------------------------------------------
     # -------- Agent ----------------------------------------------------------------
-    env_cfg.scene.num_envs = 128   # 128 envs
+    env_cfg.scene.num_envs = 128 * 3   # 128 envs
     env_cfg.observations.policy.enable_corruption = False
 
     model = PPO(
@@ -62,7 +62,7 @@ def main(env_cfg, agent_cfg):
         env=train_env,
         device="cuda",            # or "cpu"
         learning_rate=3e-4,       # PPO usually likes a smaller LR than A2C
-        n_steps=512,             # rollout length before an update
+        n_steps=512*3,             # rollout length before an update
         batch_size=2048,            # minibatch size for SGD
         n_epochs=10,              # gradient passes over each batch
         gamma=0.99,
@@ -95,7 +95,7 @@ def main(env_cfg, agent_cfg):
 
 
     # -------- Train ----------------------------------------------------------------
-    model.learn(total_timesteps=128 * 512 * 80, callback=[eval_cb, ckpt_cb], progress_bar = True)
+    model.learn(total_timesteps=128 * 512 * 80 * 9, callback=[eval_cb, ckpt_cb], progress_bar = True)
 
     # always save final weights
     model.save(MODEL_DIR / "best_model")

@@ -5,7 +5,7 @@ import rich
 
 # ── 0. Isaac Sim ─────────────────────────────────────────────────────────────
 from isaaclab.app import AppLauncher
-app_launcher   = AppLauncher(headless=True)      # flip to True once happy
+app_launcher   = AppLauncher(headless=False)      # flip to True once happy
 simulation_app = app_launcher.app                 # keep alive
 
 # ── 1. Std / third-party imports ─────────────────────────────────────────────
@@ -37,7 +37,7 @@ TASK_NAME = "Isaac-Lift-Cube-Franka-v0"
 # ── 4. Hydra entry point ─────────────────────────────────────────────────────
 @hydra_task_config(TASK_NAME, "sb3_cfg_entry_point")
 def main(env_cfg, agent_cfg):
-    env_cfg.headless = True                        # GUI on
+    env_cfg.headless = False                        # GUI on
     # env_cfg.randomization = None
     # env_cfg.observations.policy.enable_corruption = False
     # env_cfg.scene.object.init_state.pos = (0.5, 0.00, 0.005)
@@ -58,6 +58,7 @@ def main(env_cfg, agent_cfg):
                 train_env,
                 device = "cpu",
                 learning_rate = 0.001,
+                n_steps = 20,
                 verbose=1,
                 tensorboard_log=str(LOG_DIR),
                 policy_kwargs={"net_arch": [64, 64]})
@@ -78,7 +79,7 @@ def main(env_cfg, agent_cfg):
                                  verbose=2)
 
     # -------- Train ----------------------------------------------------------------
-    model.learn(total_timesteps=5000000, callback=[eval_cb, ckpt_cb], progress_bar = True)
+    model.learn(total_timesteps=20000000, callback=[eval_cb, ckpt_cb], progress_bar = True)
 
     # always save final weights
     model.save(MODEL_DIR / "best_model")
