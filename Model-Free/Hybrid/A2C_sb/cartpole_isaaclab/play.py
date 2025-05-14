@@ -1,11 +1,4 @@
-#!/usr/bin/env python3
-# Play a trained A2C policy on Isaac-Lab’s Cartpole-Direct task.
-# All settings are hard-coded: edit the constants section to change behaviour.
-
-# ──────────────────────────────────────────────────────────────────────────────
-# CONSTANTS – tweak values here, no CLI parsing required
-# ──────────────────────────────────────────────────────────────────────────────
-HEADLESS      = False          # True ➜ no GUI, faster; False ➜ show viewport
+HEADLESS      = False
 EPISODES      = 1             # how many roll-outs to play
 CHECKPOINT    = "best_model.zip"  # file name inside ROOT / "models" (or ROOT)
 
