@@ -4,7 +4,9 @@
   This repository is an introduction to popular reinforcement learning algorithms, implemented using PyTorch or Stable Baselines3. These algorithms are tested across various simulation environments to help build an intuition in how RL methods are applied in robotics.
 </p>
 
-![alt text](https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/titleimg.png)
+<p align="center">
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/titleimg.png" alt="Title Image" width="500"/>
+</p>
 
 ## Table of Contents
 - [Introduction](#introduction)
@@ -15,6 +17,19 @@
 ## Introduction
 
 ## Environment Setup
+1. Follow the [official documentation](https://isaac-sim.github.io/IsaacLab/main/source/setup/installation/pip_installation.html) to setup Isaac Sim 4.5.0 and Isaac Lab in a conda environment using pip on Ubuntu 22.04.
+2. Run the following command to check for successfull setup:
+   ```
+   ./isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/train.py --task=Isaac-Ant-v0 --headless
+   ```
+3. Clone this repository:
+   ```
+   https://github.com/Chitra-devulapalli/Reinforcement-Learning.git
+   ```
+4. Run the following command to install additional python libraries required to run algorithms in this repository:
+   ```
+   pip install requirements.txt
+   ```
 
 ## Algorithms
 
