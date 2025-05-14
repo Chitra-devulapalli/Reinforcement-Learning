@@ -35,7 +35,7 @@
 
 ### 1. Q-learning
 
-Algorithm: aaaaaaaaaaaaaaaaaaaaaaaa
+Algorithm: 
 
 Usage: 
 ```
@@ -51,7 +51,6 @@ Results:
 ### 3. Advantage Actor Critic (A2C)
 
 #### Algorithm: 
-aaaaaaaaaaaaaaaaaaaaaaaa
 
 #### Usage: 
 ```
