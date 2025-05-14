@@ -65,17 +65,17 @@ python play.py
 ```
 
 #### Results:
-Pytorch implementation:
-<p align="center">
-  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c_1cartpole.gif" width="45%" />
-  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c1_rewards.png" width="45%" />
-</p>
+PyTorch Implementation:
+| ![GIF](https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c_1cartpole.gif) | ![Plot](https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c1_rewards.png) |
+|:--:|:--:|
+| A2C with CartPole (PyTorch) | Episode Rewards Plot |
 
-Stable Baselines implementation:
-<p align="center">
-  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c_2cartpole.gif" width="45%" />
-  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c2_rewards.png" width="45%" />
-</p>
+Stable Baselines Implementation:
+| ![GIF](https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c_2cartpole.gif) | ![Plot](https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c2_rewards.png) |
+|:--:|:--:|
+| A2C with CartPole (SB3) | Episode Rewards Plot |
+
+
 
 ## Examples using Isaac Lab
 
