@@ -1,18 +1,30 @@
 import gymnasium as gym
+import imageio
+import torch
 from stable_baselines3 import A2C
-from stable_baselines3.common.vec_env import DummyVecEnv
 
 ENV_NAME = "CartPole-v1"
-MODEL_PATH = "best_model"
+MODEL_PATH = "best_model.zip"
+GIF_PATH = "/home/chitra/Documents/Reinforcement-Learning/media/a2c_2cartpole.gif"
 
-# Create environment
-env = DummyVecEnv([lambda: gym.make(ENV_NAME, render_mode="human")])
+# Create environment with rgb_array rendering
+env = gym.make(ENV_NAME, render_mode="rgb_array")
 model = A2C.load(MODEL_PATH)
 
-obs = env.reset()
-while True:
+obs, _ = env.reset(seed=42)
+frames = []
+done = False
+
+while not done:
+    frame = env.render()
+    frames.append(frame)
+
     action, _ = model.predict(obs, deterministic=True)
-    obs, reward, done, info = env.step(action)
-    env.render()
-    if done[0]:
-        obs = env.reset()
+    obs, reward, terminated, truncated, _ = env.step(action)
+    done = terminated or truncated
+
+env.close()
+
+# Save the collected frames as a GIF
+imageio.mimsave(GIF_PATH, frames, fps=30)
+print(f" GIF saved at: {GIF_PATH}")

@@ -4,8 +4,9 @@ import torch.nn as nn
 import torch.optim as optim
 import numpy as np
 import os
+import matplotlib.pyplot as plt
 
-# --- Hyperparameters ---
+# Hyperparameters
 ENV_NAME = "CartPole-v1"
 GAMMA = 0.99
 LR = 5e-3
@@ -13,12 +14,11 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 MAX_STEPS = 10000
 SAVE_PATH = "best_a2c_model.pth"
 
-# --- Create Gym Environment ---
 env = gym.make(ENV_NAME, render_mode="human")
 obs_dim = env.observation_space.shape[0]
 act_dim = env.action_space.n
 
-# --- A2C Actor-Critic Network ---
+# A2C Actor-Critic Network
 class ActorCritic(nn.Module):
     def __init__(self, obs_dim, act_dim):
         super().__init__()
@@ -35,7 +35,7 @@ class ActorCritic(nn.Module):
 model = ActorCritic(obs_dim, act_dim).to(DEVICE)
 optimizer = optim.Adam(model.parameters(), lr=LR)
 
-# --- Training Loop ---
+# Training Loop
 obs, _ = env.reset(seed=42)
 obs = torch.tensor(obs, dtype=torch.float32, device=DEVICE)
 episode_reward = 0
@@ -87,3 +87,14 @@ for step in range(MAX_STEPS):
         obs = next_obs_tensor
 
 env.close()
+
+# --- Plot Reward History ---
+plt.figure(figsize=(10, 5))
+plt.plot(reward_history, label="Episode Reward")
+plt.xlabel("Episode")
+plt.ylabel("Reward")
+plt.title("A2C on CartPole-v1")
+plt.grid(True)
+plt.legend()
+plt.tight_layout()
+plt.show()

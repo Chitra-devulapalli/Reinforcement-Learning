@@ -1,13 +1,16 @@
 import gymnasium as gym
 import torch
 import torch.nn as nn
+import imageio
+import numpy as np
+import os
 
-# --- Setup ---
+# Setup
 ENV_NAME = "CartPole-v1"
 MODEL_PATH = "best_a2c_model.pth"
+GIF_PATH = "/home/chitra/Documents/Reinforcement-Learning/media/a2c_1cartpole.gif"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-# --- Define Model ---
 class ActorCritic(nn.Module):
     def __init__(self, obs_dim, act_dim):
         super().__init__()
@@ -21,8 +24,8 @@ class ActorCritic(nn.Module):
         value = self.critic(x)
         return logits, value
 
-# --- Load Environment and Model ---
-env = gym.make(ENV_NAME, render_mode="human")
+# loading the environment and model
+env = gym.make(ENV_NAME, render_mode="rgb_array")
 obs_dim = env.observation_space.shape[0]
 act_dim = env.action_space.n
 
@@ -30,12 +33,16 @@ model = ActorCritic(obs_dim, act_dim).to(DEVICE)
 model.load_state_dict(torch.load(MODEL_PATH))
 model.eval()
 
-obs, _ = env.reset()
+frames = []
+obs, _ = env.reset(seed=42)
 obs = torch.tensor(obs, dtype=torch.float32, device=DEVICE)
-
 episode_reward = 0
 done = False
+
 while not done:
+    frame = env.render()
+    frames.append(frame)
+
     with torch.no_grad():
         logits, _ = model(obs)
         action = torch.argmax(logits, dim=-1).item()
@@ -44,8 +51,9 @@ while not done:
     episode_reward += reward
     done = terminated or truncated
     obs = torch.tensor(obs, dtype=torch.float32, device=DEVICE)
-    if done:
-        print(f"🎉 Final Episode Reward: {episode_reward:.2f}")
-        break
 
 env.close()
+
+imageio.mimsave(GIF_PATH, frames, fps=30)
+print(f"Final Episode Reward: {episode_reward:.2f}")
+print(f"Saved animation as '{GIF_PATH}'")
