@@ -54,6 +54,6 @@ while not done:
 
 env.close()
 
-imageio.mimsave(GIF_PATH, frames, fps=30)
+imageio.mimsave(GIF_PATH, frames, fps=30, loop=0)
 print(f"Final Episode Reward: {episode_reward:.2f}")
 print(f"Saved animation as '{GIF_PATH}'")

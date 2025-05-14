@@ -26,5 +26,5 @@ while not done:
 env.close()
 
 # Save the collected frames as a GIF
-imageio.mimsave(GIF_PATH, frames, fps=30)
+imageio.mimsave(GIF_PATH, frames, fps=30, loop=0)
 print(f" GIF saved at: {GIF_PATH}")
