@@ -97,8 +97,20 @@ Results:
 </p>
 
 ### 3. Advantage Actor Critic (A2C)
+Advantage Actor-Critic (A2C) is a synchronous, hybrid reinforcement learning algorithm that combines both value-based and policy-based approaches. The actor selects actions according to a policy, while the critic estimates the value function to guide learning. A2C improves training stability by reducing variance via the advantage estimate.
 
-#### Algorithm: 
+**Algorithm:**
+
+- Use a shared network to produce both action logits (actor) and state value (critic)
+- Sample actions from the softmax policy distribution
+- Compute value estimates and advantages:  
+  `advantage = (r + γ * V(s') - V(s))`
+- Update actor to maximize expected return:  
+  `loss_actor = -log_prob(action) * advantage`
+- Update critic via mean squared error loss:  
+  `loss_critic = (target - value)^2`
+- Backpropagate total loss:  
+  `loss = loss_actor + loss_critic`
 
 #### Usage: 
 ```
