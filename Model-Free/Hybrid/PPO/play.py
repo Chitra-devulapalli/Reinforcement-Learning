@@ -7,7 +7,7 @@ ENV_NAME = "CartPole-v1"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 MODEL_PATH = "ppo_cartpole_best.pth"
 
-# --- ActorCritic Network (same as training) ---
+#ActorCritic Network
 class ActorCritic(nn.Module):
     def __init__(self, obs_dim, act_dim):
         super().__init__()
@@ -24,7 +24,6 @@ class ActorCritic(nn.Module):
         dist = torch.distributions.Categorical(logits=logits)
         return dist.sample()
 
-# --- Load env and model ---
 env = gym.make(ENV_NAME, render_mode="human")
 obs_dim = env.observation_space.shape[0]
 act_dim = env.action_space.n
@@ -44,7 +43,7 @@ while True:
     episode_reward += reward
 
     if terminated or truncated:
-        print(f"🎉 Final Episode Reward: {episode_reward:.2f}")
+        print(f"Final Episode Reward: {episode_reward:.2f}")
         break  # Exit after one episode
 
 env.close()
