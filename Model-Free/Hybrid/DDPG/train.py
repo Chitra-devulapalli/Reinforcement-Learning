@@ -6,7 +6,7 @@ import torch.optim as optim
 import random
 from collections import deque
 
-# --- Hyperparameters ---
+# hyperparameters
 ENV_NAME = "Pendulum-v1"
 GAMMA = 0.99
 TAU = 0.005
@@ -19,13 +19,13 @@ MAX_STEPS = 200
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 SAVE_PATH = "ddpg_actor_best.pth"
 
-# --- Environment Setup ---
+# env setup
 env = gym.make(ENV_NAME)
 obs_dim = env.observation_space.shape[0]
 act_dim = env.action_space.shape[0]
 act_limit = env.action_space.high[0]
 
-# --- Actor Network ---
+# Actor Network
 class Actor(nn.Module):
     def __init__(self):
         super().__init__()
@@ -38,7 +38,7 @@ class Actor(nn.Module):
     def forward(self, obs):
         return self.net(obs) * act_limit
 
-# --- Critic Network ---
+# Critic Network
 class Critic(nn.Module):
     def __init__(self):
         super().__init__()
@@ -73,7 +73,7 @@ class ReplayBuffer:
     def __len__(self):
         return len(self.buffer)
 
-# --- OU Noise for Exploration ---
+# for exploration
 class OUNoise:
     def __init__(self, mu=0.0, theta=0.15, sigma=0.2):
         self.mu = mu
@@ -89,7 +89,6 @@ class OUNoise:
         self.state += dx
         return self.state
 
-# --- Initialize Networks ---
 actor = Actor().to(DEVICE)
 critic = Critic().to(DEVICE)
 target_actor = Actor().to(DEVICE)
@@ -103,7 +102,7 @@ replay_buffer = ReplayBuffer(BUFFER_SIZE)
 noise = OUNoise()
 best_reward = -float("inf")
 
-# --- Update Function ---
+# update function
 def update():
     if len(replay_buffer) < BATCH_SIZE:
         return
@@ -132,7 +131,6 @@ def update():
     for param, target_param in zip(critic.parameters(), target_critic.parameters()):
         target_param.data.copy_(TAU * param.data + (1 - TAU) * target_param.data)
 
-# --- Main Training ---
 for ep in range(MAX_EPISODES):
     obs, _ = env.reset(seed=42)
     noise.reset()
