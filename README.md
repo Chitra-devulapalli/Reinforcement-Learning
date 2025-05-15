@@ -44,9 +44,25 @@ pythin somegh #sdfgh
 ```
 
 Results:
-![alt text](https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/Model-Free/Value-Based/Q-Learning/q_learning_heatmaps_and_policy.png)
+<p align="center">
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/Model-Free/Value-Based/Q-Learning/q_learning_heatmaps_and_policy.png" alt="Title Image" width="500"/>
+</p>
+
 
 ### 2. DQN
+
+Algorithm: 
+
+Usage: 
+```
+python something #fghj
+pythin somegh #sdfgh
+```
+
+Results:
+<p align="center">
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/Model-Free/Value-Based/Q-Learning/dqn_heatmaps_and_policy-100.png" alt="Title Image" width="500"/>
+</p>
 
 ### 3. Advantage Actor Critic (A2C)
 
@@ -66,13 +82,13 @@ python play.py
 #### Results:
 Pytorch Implementation:
 <p>
-  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c_1cartpole.gif?raw=true" alt="A2C PyTorch" width="45%" />
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c_1cartpole.gif?raw=true" alt="A2C PyTorch" width="34%" />
   <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c1_rewards.png?raw=true" alt="Rewards Plot PyTorch" width="45%" />
 </p>
 
 Stable Baselines Implementation:
 <p>
-  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c_2cartpole.gif?raw=true" alt="A2C SB3" width="45%" />
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c_2cartpole.gif?raw=true" alt="A2C SB3" width="34%" />
   <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c2_rewards.png?raw=true" alt="Rewards Plot SB3" width="45%" />
 </p>
 
