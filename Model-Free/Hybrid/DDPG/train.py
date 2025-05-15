@@ -157,6 +157,6 @@ for ep in range(MAX_EPISODES):
     if episode_reward > best_reward:
         best_reward = episode_reward
         torch.save(actor.state_dict(), SAVE_PATH)
-        print(f"✅ Saved best model with reward: {best_reward:.2f}")
+        print(f"Saved best model with reward: {best_reward:.2f}")
 
 env.close()
