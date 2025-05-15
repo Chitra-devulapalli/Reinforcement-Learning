@@ -7,7 +7,7 @@ import torch.optim as optim
 import random
 from collections import deque
 
-# --- Hyperparameters ---
+# hyperparameters
 ENV_NAME = "Pendulum-v1"
 GAMMA = 0.99
 TAU = 0.005
@@ -23,13 +23,11 @@ TARGET_NOISE = 0.2
 NOISE_CLIP = 0.5
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# --- Environment ---
 env = gym.make(ENV_NAME)
 obs_dim = env.observation_space.shape[0]
 act_dim = env.action_space.shape[0]
 act_limit = env.action_space.high[0]
 
-# --- Actor ---
 class Actor(nn.Module):
     def __init__(self):
         super().__init__()
@@ -42,7 +40,6 @@ class Actor(nn.Module):
     def forward(self, obs):
         return self.net(obs) * act_limit
 
-# --- Critic ---
 class Critic(nn.Module):
     def __init__(self):
         super().__init__()
@@ -55,7 +52,6 @@ class Critic(nn.Module):
     def forward(self, obs, act):
         return self.net(torch.cat([obs, act], dim=-1))
 
-# --- Replay Buffer ---
 class ReplayBuffer:
     def __init__(self, capacity):
         self.buffer = deque(maxlen=capacity)
@@ -77,7 +73,6 @@ class ReplayBuffer:
     def __len__(self):
         return len(self.buffer)
 
-# --- Initialize ---
 actor = Actor().to(DEVICE)
 actor_target = Actor().to(DEVICE)
 actor_target.load_state_dict(actor.state_dict())
@@ -95,7 +90,6 @@ critic_opt_2 = optim.Adam(critic_2.parameters(), lr=LR_CRITIC)
 
 replay_buffer = ReplayBuffer(BUFFER_SIZE)
 
-# --- Training ---
 best_reward = -np.inf
 
 def soft_update(source, target):
@@ -140,7 +134,6 @@ def train():
     soft_update(critic_1, critic_target_1)
     soft_update(critic_2, critic_target_2)
 
-# --- Main Loop ---
 updates = 0
 for ep in range(MAX_EPISODES):
     obs, _ = env.reset()
@@ -169,6 +162,6 @@ for ep in range(MAX_EPISODES):
     if total_reward > best_reward:
         best_reward = total_reward
         torch.save(actor.state_dict(), "td3_actor_best.pth")
-        print(f"✅ Saved new best model with reward: {best_reward:.2f}")
+        print(f"Saved new best model with reward: {best_reward:.2f}")
 
 env.close()
