@@ -6,7 +6,7 @@ import torch.optim as optim
 import random
 from collections import deque
 
-# --- Hyperparameters ---
+# hyperparameters
 ENV_NAME = "Pendulum-v1"
 GAMMA = 0.99
 TAU = 0.005
@@ -24,7 +24,8 @@ obs_dim = env.observation_space.shape[0]
 act_dim = env.action_space.shape[0]
 act_limit = env.action_space.high[0]
 
-# --- Actor Network (outputs mean and log_std) ---
+# Actor Network
+# outputs mean and log_std
 class Actor(nn.Module):
     def __init__(self):
         super().__init__()
@@ -51,7 +52,7 @@ class Actor(nn.Module):
         log_prob = log_prob.sum(1, keepdim=True)
         return action * act_limit, log_prob
 
-# --- Critic Network ---
+# Critic Network
 class Critic(nn.Module):
     def __init__(self):
         super().__init__()
@@ -64,7 +65,7 @@ class Critic(nn.Module):
     def forward(self, obs, act):
         return self.net(torch.cat([obs, act], dim=-1))
 
-# --- Replay Buffer ---
+# Replay Buffer
 class ReplayBuffer:
     def __init__(self, capacity):
         self.buffer = deque(maxlen=capacity)
@@ -86,7 +87,6 @@ class ReplayBuffer:
     def __len__(self):
         return len(self.buffer)
 
-# --- Initialize Networks ---
 actor = Actor().to(DEVICE)
 critic1 = Critic().to(DEVICE)
 critic2 = Critic().to(DEVICE)
@@ -104,7 +104,7 @@ replay_buffer = ReplayBuffer(BUFFER_SIZE)
 
 best_reward = -float("inf")
 
-# --- Training Loop ---
+# training loop
 def update():
     if len(replay_buffer) < BATCH_SIZE:
         return
@@ -141,7 +141,7 @@ def update():
     actor_loss.backward()
     actor_optimizer.step()
 
-    # Soft update
+    # soft update
     for param, target_param in zip(critic1.parameters(), target_critic1.parameters()):
         target_param.data.copy_(TAU * param.data + (1 - TAU) * target_param.data)
     for param, target_param in zip(critic2.parameters(), target_critic2.parameters()):
