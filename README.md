@@ -39,13 +39,23 @@ Robotics-specific examples using Isaac Sim and Isaac Lab are included for Cartpo
 ## Algorithms
 
 ### 1. Q-learning
+Q-learning is a foundational **value-based reinforcement learning algorithm**. It estimates the optimal action-value function `Q(s, a)` using the Bellman equation and updates the table through temporal difference learning. This method is typically used in discrete environments.
 
 Algorithm: 
+At each step:
+
+- Choose action using ε-greedy policy from Q-table  
+- Execute action, observe reward and next state  
+- Update Q-value:
+
+  `Q(s, a) ← Q(s, a) + α [r + γ ⋅ max_a' Q(s', a') − Q(s, a)]`
+
+- Repeat until convergence or for a fixed number of episodes
 
 Usage: 
 ```
-python something #fghj
-pythin somegh #sdfgh
+cd Q_Learning 
+python Q_learning.py
 ```
 
 Results:
@@ -55,13 +65,30 @@ Results:
 
 
 ### 2. DQN
+Deep Q-Network (DQN) is an extension of Q-learning that uses a neural network to approximate the Q-value function. This allows it to scale to environments with large or continuous state spaces.
 
-Algorithm: 
+**Algorithm:**  
+At each step:
+
+- Encode the state as input to a neural network (the Q-network)
+- Choose action using ε-greedy policy from predicted Q-values
+- Execute action, observe reward and next state
+- Store the transition `(s, a, r, s', done)` in a replay buffer
+- Sample a batch of transitions from the buffer
+- Compute target Q-value:
+
+  `target = r + γ ⋅ max_a' Q_target(s', a')`
+
+- Update Q-network by minimizing:
+
+  `loss = (Q(s, a) - target)^2`
+
+- Periodically update the target network
 
 Usage: 
-```
-python something #fghj
-pythin somegh #sdfgh
+```bash
+cd Value/DQN
+python train_dqn.py
 ```
 
 Results:
