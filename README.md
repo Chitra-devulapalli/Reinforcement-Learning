@@ -15,6 +15,11 @@
 - [Examples using Isaac Lab](#examples-using-isaac-lab)
 
 ## Introduction
+Reinforcement Learning (RL) has emerged as a powerful framework in robot learning, enabling agents to discover optimal control policies through trial and error. From balancing a cartpole to performing complex path planning, RL offers a principled way to map sensory inputs to actions using reward-driven feedback.
+
+This repository provides a hands-on, tutorial-style introduction to widely used RL algorithms, implemented using both PyTorch (from scratch) and Stable Baselines3 (SB3). It covers a range of discrete and continuous control tasks, exploring value-based methods (such as Q-learning and DQN) and hybrid actor-critic techniques (like A2C, PPO, DDPG, TD3, and SAC).
+
+Robotics-specific examples using Isaac Sim and Isaac Lab are included to bridge the gap between simulation and real-world robotics, featuring tasks such as Cartpole balancing and Franka Panda reacher (trained using A2C and PPO).
 
 ## Environment Setup
 1. Follow the [official documentation](https://isaac-sim.github.io/IsaacLab/main/source/setup/installation/pip_installation.html) to setup Isaac Sim 4.5.0 and Isaac Lab in a conda environment using pip on Ubuntu 22.04.
