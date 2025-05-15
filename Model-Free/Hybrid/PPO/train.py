@@ -5,7 +5,7 @@ import torch.optim as optim
 import numpy as np
 import os
 
-# --- Hyperparameters ---
+# hyperparameters
 ENV_NAME = "CartPole-v1"
 GAMMA = 0.99
 LR = 1e-4
@@ -17,12 +17,12 @@ BATCH_SIZE = 64
 MAX_TOTAL_STEPS = 100000
 SAVE_PATH = "ppo_cartpole_best.pth"
 
-# --- Create Gym Environment ---
+# gym environment
 env = gym.make(ENV_NAME, render_mode="human")
 obs_dim = env.observation_space.shape[0]
 act_dim = env.action_space.n
 
-# --- PPO Actor-Critic Model ---
+# PPO Actor-Critic Model
 class ActorCritic(nn.Module):
     def __init__(self):
         super().__init__()
@@ -43,7 +43,7 @@ class ActorCritic(nn.Module):
 model = ActorCritic().to(DEVICE)
 optimizer = optim.Adam(model.parameters(), lr=LR)
 
-# --- Rollout buffer ---
+
 class RolloutBuffer:
     def __init__(self):
         self.obs, self.actions, self.log_probs = [], [], []
@@ -76,7 +76,7 @@ class RolloutBuffer:
             torch.tensor(self.log_probs).to(DEVICE)
         )
 
-# --- Training loop ---
+# training loop
 obs, _ = env.reset(seed=42)
 buffer = RolloutBuffer()
 episode_reward = 0
@@ -85,7 +85,6 @@ best_avg_reward = -float("inf")
 total_env_steps = 0
 
 while total_env_steps < MAX_TOTAL_STEPS:
-    # --- Collect rollouts ---
     steps_collected = 0
     while steps_collected < UPDATE_STEPS:
         obs_tensor = torch.tensor(obs, dtype=torch.float32, device=DEVICE)
@@ -112,7 +111,6 @@ while total_env_steps < MAX_TOTAL_STEPS:
             episode_reward = 0
             obs, _ = env.reset()
 
-    # --- Compute advantages and returns ---
     with torch.no_grad():
         obs_tensor = torch.tensor(obs, dtype=torch.float32, device=DEVICE)
         _, _, _, last_value = model.act(obs_tensor)
@@ -122,7 +120,7 @@ while total_env_steps < MAX_TOTAL_STEPS:
     returns = buffer.returns
     advantages = (buffer.advantages - buffer.advantages.mean()) / (buffer.advantages.std() + 1e-8)
 
-    # --- Optimize policy ---
+    # pptimizing policy
     for _ in range(PPO_EPOCHS):
         for i in range(0, UPDATE_STEPS, BATCH_SIZE):
             idx = slice(i, i + BATCH_SIZE)
