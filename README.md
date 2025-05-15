@@ -64,15 +64,18 @@ python play.py
 ```
 
 #### Results:
-PyTorch Implementation:
-| ![GIF](https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c_1cartpole.gif) | ![Plot](https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c1_rewards.png) |
-|:--:|:--:|
-| A2C with CartPole (PyTorch) | Episode Rewards Plot |
+Pytorch Implementation:
+<p>
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c_1cartpole.gif?raw=true" alt="A2C PyTorch" width="45%" />
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c1_rewards.png?raw=true" alt="Rewards Plot PyTorch" width="45%" />
+</p>
 
 Stable Baselines Implementation:
-| ![GIF](https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c_2cartpole.gif) | ![Plot](https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c2_rewards.png) |
-|:--:|:--:|
-| A2C with CartPole (SB3) | Episode Rewards Plot |
+<p>
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c_2cartpole.gif?raw=true" alt="A2C SB3" width="45%" />
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c2_rewards.png?raw=true" alt="Rewards Plot SB3" width="45%" />
+</p>
+
 
 
 
