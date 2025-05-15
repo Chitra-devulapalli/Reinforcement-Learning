@@ -3,18 +3,16 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-# --- Configuration ---
 ENV_NAME = "Pendulum-v1"
 MODEL_PATH = "ddpg_actor_best.pth"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# --- Environment Setup ---
 env = gym.make(ENV_NAME, render_mode="human")
 obs_dim = env.observation_space.shape[0]
 act_dim = env.action_space.shape[0]
 act_limit = env.action_space.high[0]
 
-# --- Actor Model ---
+# Actor Model
 class Actor(nn.Module):
     def __init__(self):
         super().__init__()
@@ -27,12 +25,10 @@ class Actor(nn.Module):
     def forward(self, obs):
         return self.net(obs) * act_limit
 
-# --- Load Trained Model ---
 actor = Actor().to(DEVICE)
 actor.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
 actor.eval()
 
-# --- Play One Episode ---
 obs, _ = env.reset()
 done = False
 total_reward = 0.0
