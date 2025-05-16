@@ -240,6 +240,8 @@ Stable Baselines Implementation:
   <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/td3_rewards2.png" alt="Rewards Plot SB3" width="45%" />
 </p>
 
+**Note:** We can observe that Pytorch implementation of TD3 doesn't perform as well as the stable baselines implementation and needs improvement. 
+
 ### 7. Soft Actor-Critic (SAC)
 Soft Actor-Critic (SAC) is an off-policy, actor-critic algorithm designed for continuous action spaces. It maximizes both the expected return and policy entropy, encouraging exploration and stability. SAC uses stochastic policies, twin Q-networks to reduce overestimation bias, and soft updates for target networks.
 
@@ -286,6 +288,12 @@ We explored a range of robotics environments within Isaac Sim/Isaac Lab, using S
 | Cartpole using A2C          | ![Training Gif](https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/cartpole_train.gif) | ![Result Gif](https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/cartpole_play.gif) |
 | Franka Reacher using A2C    | ![Training Gif](https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2ctrain_arm.gif) | ![Result Gif](https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/a2c_res.gif) |
 | Franka Reacher using PPO    | ![Training Gif](https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/ppotrain_arm.gif) | ![Result Gif](https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/ppo_res.gif) |
+
+#### Usage:
+```
+./isaaclab.sh -p ~/Documents/Reinforcement-Learning/Model-Free/Hybrid/A2C_sb/arm_isaaclab/train.py
+./isaaclab.sh -p ~/Documents/Reinforcement-Learning/Model-Free/Hybrid/A2C_sb/arm_isaaclab/play.py
+```
 
 NOTE: The Isaac Lab Reacher environment that is compatible with Stable Baselines does not exist (Isaac-Reach-Franka-v0 is incompatible with SB3). Therefore, the Isaac-Lift-Cube-Franka-v0 environment has been modified by adjusting the ```RewardsCfg``` found in ```..../IsaacLab/source/isaaclab_tasks/isaaclab_tasks/manager_based/manipulation/lift``` to simplify the task, focusing only on reaching the cube.
 
