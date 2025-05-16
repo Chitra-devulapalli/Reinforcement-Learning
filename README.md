@@ -152,6 +152,17 @@ python train.py
 python play.py
 ``` 
 #### Results:
+Pytorch Implementation:
+<p>
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/ppo1_cartpole.gif" alt="PPO Pytorch" width="45%" />
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/ppo1_rewards.png" alt="Rewards Plot PyTorch" width="34%" />
+</p>
+
+Stable Baselines Implementation:
+<p>
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/ppo2_cartpole.gif" alt="PPO SB3"width="45%" />
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/rewards_ppo2.png" alt="Rewards Plot SB3" width="34%" />
+</p>
 
 ### 5. Deep Deterministic Policy Gradient (DDPG)
 Deep Deterministic Policy Gradient (DDPG) is an off-policy, model-free reinforcement learning algorithm designed for environments with continuous action spaces. It combines the deterministic policy gradient algorithm with the actor-critic architecture and uses target networks along with a replay buffer to stabilize training.
