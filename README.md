@@ -154,15 +154,17 @@ python play.py
 #### Results:
 Pytorch Implementation:
 <p>
-  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/ppo1_cartpole.gif" alt="PPO Pytorch" width="45%" />
-  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/ppo1_rewards.png" alt="Rewards Plot PyTorch" width="34%" />
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/ppo1_cartpole.gif" alt="PPO Pytorch" width="34%" />
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/ppo1_rewards.png" alt="Rewards Plot PyTorch" width="45%" />
 </p>
 
 Stable Baselines Implementation:
 <p>
-  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/ppo2_cartpole.gif" alt="PPO SB3"width="45%" />
-  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/rewards_ppo2.png" alt="Rewards Plot SB3" width="34%" />
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/ppo2_cartpole.gif" alt="PPO SB3"width="34%" />
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/rewards_ppo2.png" alt="Rewards Plot SB3" width="45%" />
 </p>
+
+**Note:** We can observe that Pytorch implementation of PPO doesn't perform as well as the stable baselines implementation and needs improvement. 
 
 ### 5. Deep Deterministic Policy Gradient (DDPG)
 Deep Deterministic Policy Gradient (DDPG) is an off-policy, model-free reinforcement learning algorithm designed for environments with continuous action spaces. It combines the deterministic policy gradient algorithm with the actor-critic architecture and uses target networks along with a replay buffer to stabilize training.
@@ -190,6 +192,18 @@ python play.py
 ```
 
 #### Results:
+Pytorch Implementation:
+<p>
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/ddpg_cartpole.gif" alt="PPO Pytorch" width="34%" />
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/ddpg_rewards1.png" alt="Rewards Plot PyTorch" width="45%" />
+</p>
+
+Stable Baselines Implementation:
+<p>
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/ddpg2_cartpole.gif" alt="PPO SB3"width="34%" />
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/rewards2_ddpg.png" alt="Rewards Plot SB3" width="45%" />
+</p>
+
 
 ### 6. Twin Delayed Deep Deterministic Policy Gradient (TD3)
 Twin Delayed DDPG (TD3) improves upon DDPG by addressing overestimation bias in Q-value estimates and improving policy stability. It uses two critic networks to take the minimum value estimate and delays actor updates, while adding clipped noise to target actions for smoother value approximation.
@@ -214,6 +228,17 @@ python play.py
 ```
 
 #### Results:
+Pytorch Implementation:
+<p>
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/td3_pendulum1.gif" alt="PPO Pytorch" width="34%" />
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/td3_rewards1.png" alt="Rewards Plot PyTorch" width="45%" />
+</p>
+
+Stable Baselines Implementation:
+<p>
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/td3_pendulum2.gif" alt="PPO SB3"width="34%" />
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/td3_rewards2.png" alt="Rewards Plot SB3" width="45%" />
+</p>
 
 ### 7. Soft Actor-Critic (SAC)
 Soft Actor-Critic (SAC) is an off-policy, actor-critic algorithm designed for continuous action spaces. It maximizes both the expected return and policy entropy, encouraging exploration and stability. SAC uses stochastic policies, twin Q-networks to reduce overestimation bias, and soft updates for target networks.
@@ -240,6 +265,17 @@ python play.py
 ```
 
 #### Results:
+Pytorch Implementation:
+<p>
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/sac1_pendulum.gif" alt="PPO Pytorch" width="34%" />
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/sac_rewards1.png" alt="Rewards Plot PyTorch" width="45%" />
+</p>
+
+Stable Baselines Implementation:
+<p>
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/sac2_cartpole.gif" alt="PPO SB3"width="34%" />
+  <img src="https://github.com/Chitra-devulapalli/Reinforcement-Learning/blob/main/media/sac_rewards2.png" alt="Rewards Plot SB3" width="45%" />
+</p>
 
 ## Examples using Isaac Lab
 
