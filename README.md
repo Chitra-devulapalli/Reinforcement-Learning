@@ -43,16 +43,13 @@ Q-learning is a foundational **value-based reinforcement learning algorithm**. I
 
 Algorithm: 
 At each step:
-
 - Choose action using ε-greedy policy from Q-table  
 - Execute action, observe reward and next state  
-- Update Q-value:
-
-  `Q(s, a) ← Q(s, a) + α [r + γ ⋅ max_a' Q(s', a') − Q(s, a)]`
-
+- Update Q-value: <br>
+  `Q(s, a) ← Q(s, a) + α [r + γ ⋅ max_a' Q(s', a') − Q(s, a)]` <br>
 - Repeat until convergence or for a fixed number of episodes
 
-Usage: 
+#### Usage: 
 ```
 cd Q_Learning 
 python Q_learning.py
@@ -69,23 +66,18 @@ Deep Q-Network (DQN) is an extension of Q-learning that uses a neural network to
 
 **Algorithm:**  
 At each step:
-
 - Encode the state as input to a neural network (the Q-network)
 - Choose action using ε-greedy policy from predicted Q-values
 - Execute action, observe reward and next state
 - Store the transition `(s, a, r, s', done)` in a replay buffer
 - Sample a batch of transitions from the buffer
 - Compute target Q-value:
-
-  `target = r + γ ⋅ max_a' Q_target(s', a')`
-
-- Update Q-network by minimizing:
-
-  `loss = (Q(s, a) - target)^2`
-
+  `target = r + γ ⋅ max_a' Q_target(s', a')` <br>
+- Update Q-network by minimizing: <br>
+  `loss = (Q(s, a) - target)^2` <br>
 - Periodically update the target network
 
-Usage: 
+#### Usage: 
 ```bash
 cd Value/DQN
 python train_dqn.py
@@ -100,7 +92,6 @@ Results:
 Advantage Actor-Critic (A2C) is a synchronous, hybrid reinforcement learning algorithm that combines both value-based and policy-based approaches. The actor selects actions according to a policy, while the critic estimates the value function to guide learning. A2C improves training stability by reducing variance via the advantage estimate.
 
 **Algorithm:**
-
 - Use a shared network to produce both action logits (actor) and state value (critic)
 - Sample actions from the softmax policy distribution
 - Compute value estimates and advantages:  
@@ -137,7 +128,107 @@ Stable Baselines Implementation:
 </p>
 
 
+### 4. Proximal Policy Optimization (PPO)
+Proximal Policy Optimization (PPO) is a widely used policy gradient method that improves training stability by clipping the probability ratio between the new and old policies. This avoids large, destabilizing policy updates while still enabling efficient learning.
 
+**Algorithm:**
+- Collect trajectories using the current policy.
+- Compute Generalized Advantage Estimation (GAE) for stable advantage calculation.
+- Optimize the clipped surrogate objective:  
+  `L_clip(θ) = E_t [ min(r_t(θ) * Â_t, clip(r_t(θ), 1 - ε, 1 + ε) * Â_t) ]` <br>
+   where `r_t(θ) = π_θ(a_t | s_t) / π_θ_old(a_t | s_t)`  
+- Use multiple epochs of minibatch updates on collected data.
+- Add entropy bonus and critic value loss for improved exploration and stability.
+
+#### Usage:
+
+```bash
+cd Hybrid/PPO
+python train.py # for pytorch version from scratch
+python play.py
+
+cd Hybrid/PPO_sb # for stable baselines version
+python train.py
+python play.py
+``` 
+#### Results:
+
+### 5. Deep Deterministic Policy Gradient (DDPG)
+Deep Deterministic Policy Gradient (DDPG) is an off-policy, model-free reinforcement learning algorithm designed for environments with continuous action spaces. It combines the deterministic policy gradient algorithm with the actor-critic architecture and uses target networks along with a replay buffer to stabilize training.
+
+**Algorithm:**
+- Use an actor network to output deterministic actions and a critic network to estimate Q-values.
+- Add exploration noise (e.g., Ornstein-Uhlenbeck) to the actor’s action during training.
+- Store transitions `(s, a, r, s', done)` in a replay buffer.
+- Sample mini-batches from the buffer and update:
+  - **Critic**: using the Bellman target `Q_target = r + γ * Q'(s', μ'(s'))`
+  - **Actor**: via policy gradient that maximizes the critic output.
+- Soft update the target networks:  
+  `θ_target ← τ * θ + (1 - τ) * θ_target`
+
+#### Usage:
+
+```bash
+cd Hybrid/DDPG
+python train.py # for pytorch version from scratch
+python play.py
+
+cd Hybrid/DDPG_sb
+python train.py # for stable baselines version
+python play.py
+```
+
+#### Results:
+
+### 6. Twin Delayed Deep Deterministic Policy Gradient (TD3)
+Twin Delayed DDPG (TD3) improves upon DDPG by addressing overestimation bias in Q-value estimates and improving policy stability. It uses two critic networks to take the minimum value estimate and delays actor updates, while adding clipped noise to target actions for smoother value approximation.
+
+**Algorithm:**
+- Maintain two Q-functions \( Q_1 \), \( Q_2 \) and a deterministic actor.
+- Use **target policy smoothing**: add clipped noise to target actions.
+- Use **twin critics**: take the minimum of \( Q_1 \), \( Q_2 \) during target computation.
+- Delay actor updates (e.g., update actor every 2 critic updates).
+- Perform soft updates for target networks.
+
+#### Usage:
+
+```bash
+cd Hybrid/TD3 # for pytorch version from scratch
+python train.py
+python play.py
+
+cd Hybrid/TD3 # for stable baselines version
+python train.py
+python play.py
+```
+
+#### Results:
+
+### 7. Soft Actor-Critic (SAC)
+Soft Actor-Critic (SAC) is an off-policy, actor-critic algorithm designed for continuous action spaces. It maximizes both the expected return and policy entropy, encouraging exploration and stability. SAC uses stochastic policies, twin Q-networks to reduce overestimation bias, and soft updates for target networks.
+
+**Algorithm:**
+- Learn a stochastic policy `π(a|s)` using reparameterization and entropy regularization.
+- Train two Q-value critics and take the minimum to form the value target.
+- Optimize the actor to maximize Q-values minus entropy penalty: <br>
+  `J_π = E_{s_t ~ D, a_t ~ π}[α * log π(a_t|s_t) - Q(s_t, a_t)]`
+- Use target networks for stability in critic updates.
+- Perform soft updates:  
+  `θ_target ← τ * θ + (1 - τ) * θ_target`
+
+#### Usage:
+
+```bash
+cd Hybrid/SAC # for pytorch version from scratch 
+python train.py
+python play.py
+
+cd Hybrid/SAC_sb # for stable baselines version
+python train.py
+python play.py
+```
+
+#### Results:
 
 ## Examples using Isaac Lab
 
