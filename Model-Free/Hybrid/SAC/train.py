@@ -5,27 +5,29 @@ import torch.nn as nn
 import torch.optim as optim
 import random
 from collections import deque
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+from pathlib import Path
 
-# hyperparameters
 ENV_NAME = "Pendulum-v1"
 GAMMA = 0.99
 TAU = 0.005
 LR_ACTOR = 3e-4
 LR_CRITIC = 3e-4
-ALPHA = 0.2  # Entropy coefficient
+ALPHA = 0.2
 BUFFER_SIZE = int(1e6)
 BATCH_SIZE = 256
 MAX_EPISODES = 300
 MAX_STEPS = 200
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+PLOT_PATH = Path.home() / "Documents/Reinforcement-Learning/media/sac_rewards1.png"
 
 env = gym.make(ENV_NAME)
 obs_dim = env.observation_space.shape[0]
 act_dim = env.action_space.shape[0]
 act_limit = env.action_space.high[0]
 
-# Actor Network
-# outputs mean and log_std
 class Actor(nn.Module):
     def __init__(self):
         super().__init__()
@@ -52,7 +54,6 @@ class Actor(nn.Module):
         log_prob = log_prob.sum(1, keepdim=True)
         return action * act_limit, log_prob
 
-# Critic Network
 class Critic(nn.Module):
     def __init__(self):
         super().__init__()
@@ -65,7 +66,6 @@ class Critic(nn.Module):
     def forward(self, obs, act):
         return self.net(torch.cat([obs, act], dim=-1))
 
-# Replay Buffer
 class ReplayBuffer:
     def __init__(self, capacity):
         self.buffer = deque(maxlen=capacity)
@@ -101,10 +101,9 @@ critic1_optimizer = optim.Adam(critic1.parameters(), lr=LR_CRITIC)
 critic2_optimizer = optim.Adam(critic2.parameters(), lr=LR_CRITIC)
 
 replay_buffer = ReplayBuffer(BUFFER_SIZE)
-
 best_reward = -float("inf")
+reward_history = []
 
-# training loop
 def update():
     if len(replay_buffer) < BATCH_SIZE:
         return
@@ -141,7 +140,6 @@ def update():
     actor_loss.backward()
     actor_optimizer.step()
 
-    # soft update
     for param, target_param in zip(critic1.parameters(), target_critic1.parameters()):
         target_param.data.copy_(TAU * param.data + (1 - TAU) * target_param.data)
     for param, target_param in zip(critic2.parameters(), target_critic2.parameters()):
@@ -169,10 +167,21 @@ for ep in range(MAX_EPISODES):
             break
 
     print(f"Episode {ep+1} | Reward: {episode_reward:.2f}")
+    reward_history.append(episode_reward)
 
     if episode_reward > best_reward:
         best_reward = episode_reward
         torch.save(actor.state_dict(), "sac_actor_best.pth")
-        print(f"✅ Saved best actor with reward: {best_reward:.2f}")
+        print(f"Saved best actor with reward: {best_reward:.2f}")
 
 env.close()
+PLOT_PATH.parent.mkdir(parents=True, exist_ok=True)
+plt.figure(figsize=(8, 4))
+plt.plot(reward_history)
+plt.title("SAC on Pendulum-v1")
+plt.xlabel("Episode")
+plt.ylabel("Return")
+plt.tight_layout()
+plt.savefig(PLOT_PATH, dpi=300)
+plt.close()
+print(f"Saved reward curve at {PLOT_PATH}")

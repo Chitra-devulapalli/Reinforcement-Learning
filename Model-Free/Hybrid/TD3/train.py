@@ -1,4 +1,3 @@
-
 import gymnasium as gym
 import numpy as np
 import torch
@@ -6,8 +5,11 @@ import torch.nn as nn
 import torch.optim as optim
 import random
 from collections import deque
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+from pathlib import Path
 
-# hyperparameters
 ENV_NAME = "Pendulum-v1"
 GAMMA = 0.99
 TAU = 0.005
@@ -22,6 +24,7 @@ ACT_NOISE = 0.1
 TARGET_NOISE = 0.2
 NOISE_CLIP = 0.5
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+PLOT_PATH = Path.home() / "Documents/Reinforcement-Learning/media/td3_rewards1.png"
 
 env = gym.make(ENV_NAME)
 obs_dim = env.observation_space.shape[0]
@@ -89,8 +92,8 @@ critic_opt_1 = optim.Adam(critic_1.parameters(), lr=LR_CRITIC)
 critic_opt_2 = optim.Adam(critic_2.parameters(), lr=LR_CRITIC)
 
 replay_buffer = ReplayBuffer(BUFFER_SIZE)
-
 best_reward = -np.inf
+reward_history = []
 
 def soft_update(source, target):
     for src, tgt in zip(source.parameters(), target.parameters()):
@@ -158,6 +161,7 @@ for ep in range(MAX_EPISODES):
             break
 
     print(f"Episode {ep + 1}, Reward: {total_reward:.2f}")
+    reward_history.append(total_reward)
 
     if total_reward > best_reward:
         best_reward = total_reward
@@ -165,3 +169,13 @@ for ep in range(MAX_EPISODES):
         print(f"Saved new best model with reward: {best_reward:.2f}")
 
 env.close()
+PLOT_PATH.parent.mkdir(parents=True, exist_ok=True)
+plt.figure(figsize=(8, 4))
+plt.plot(reward_history)
+plt.title("TD3 on Pendulum-v1")
+plt.xlabel("Episode")
+plt.ylabel("Return")
+plt.tight_layout()
+plt.savefig(PLOT_PATH, dpi=300)
+plt.close()
+print(f"Saved reward curve at {PLOT_PATH}")

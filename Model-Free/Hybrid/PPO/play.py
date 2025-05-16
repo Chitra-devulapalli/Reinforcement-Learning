@@ -2,10 +2,12 @@ import gymnasium as gym
 import torch
 import torch.nn as nn
 import numpy as np
+import imageio
 
 ENV_NAME = "CartPole-v1"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 MODEL_PATH = "ppo_cartpole_best.pth"
+GIF_PATH = "/home/chitra/Documents/Reinforcement-Learning/media/ppo1_cartpole.gif"
 
 #ActorCritic Network
 class ActorCritic(nn.Module):
@@ -24,7 +26,7 @@ class ActorCritic(nn.Module):
         dist = torch.distributions.Categorical(logits=logits)
         return dist.sample()
 
-env = gym.make(ENV_NAME, render_mode="human")
+env = gym.make(ENV_NAME, render_mode="rgb_array")
 obs_dim = env.observation_space.shape[0]
 act_dim = env.action_space.n
 
@@ -34,8 +36,12 @@ model.eval()
 
 obs, _ = env.reset(seed=42)
 episode_reward = 0
+frames = []
 
 while True:
+    frame = env.render()
+    frames.append(frame)
+
     obs_tensor = torch.tensor(obs, dtype=torch.float32, device=DEVICE)
     action = model.act(obs_tensor).item()
 
@@ -47,3 +53,5 @@ while True:
         break  # Exit after one episode
 
 env.close()
+imageio.mimsave(GIF_PATH, frames, fps=30, loop=0)
+print(f"Saved animation as '{GIF_PATH}'")

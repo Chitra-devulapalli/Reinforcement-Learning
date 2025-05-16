@@ -70,8 +70,6 @@ def main(env_cfg, agent_cfg):
 
     # saving final weights
     model.save(MODEL_DIR / "best_model")
-
-    # -------- Clean-up -------------------------------------------------------------
     train_env.close()
     eval_env.close()
     simulation_app.close()

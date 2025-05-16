@@ -2,11 +2,13 @@ import gymnasium as gym
 import torch
 import torch.nn as nn
 import numpy as np
+import imageio
 
 ENV_NAME = "Pendulum-v1"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+GIF_PATH = "/home/chitra/Documents/Reinforcement-Learning/media/td3_pendulum1.gif"
 
-env = gym.make(ENV_NAME, render_mode="human")
+env = gym.make(ENV_NAME, render_mode="rgb_array")
 obs_dim = env.observation_space.shape[0]
 act_dim = env.action_space.shape[0]
 act_limit = env.action_space.high[0]
@@ -31,8 +33,12 @@ actor.eval()
 obs, _ = env.reset()
 done = False
 total_reward = 0
+frames = []
 
 while not done:
+    frame = env.render()
+    frames.append(frame)
+
     obs_tensor = torch.tensor(obs, dtype=torch.float32, device=DEVICE).unsqueeze(0)
     with torch.no_grad():
         act = actor(obs_tensor).cpu().numpy()[0]
@@ -42,3 +48,6 @@ while not done:
 
 print(f"Total Reward: {total_reward:.2f}")
 env.close()
+
+imageio.mimsave(GIF_PATH, frames, fps=30, loop=0)
+print(f"Saved animation as '{GIF_PATH}'")
